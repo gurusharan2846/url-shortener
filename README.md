@@ -1,6 +1,3 @@
-# url-shortener
-Distributed URL Shortener with Cassandra, Redis, Kafka, Kubernetes, CI/CD, Monitoring
-
 # URL Shortener (Distributed System)
 
 A production-grade distributed URL shortener built with:
