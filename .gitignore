@@ -24,3 +24,10 @@ hs_err_pid*
 replay_pid*
 
 *.idea
+.DS_Store
+target/
+**/target/
+.idea/
+*.iml
+out/
+
