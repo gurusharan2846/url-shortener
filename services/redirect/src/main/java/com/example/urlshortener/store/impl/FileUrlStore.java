@@ -18,7 +18,7 @@ public class FileUrlStore implements UrlStore {
 
     private final Path path = Paths.get("/tmp/url-store.json");
     private final ObjectMapper mapper = new ObjectMapper();
-    private volatile Map<String, String> cache = new ConcurrentHashMap<>();
+    private volatile Map<String, String> cache = Map.of();
 
     @PostConstruct
     void init() throws IOException {
@@ -33,14 +33,18 @@ public class FileUrlStore implements UrlStore {
     @Scheduled(fixedRate = 5000)
     public void reloadMappings() throws IOException {
         if (!Files.exists(path)) return;
+
         try {
-                // Read JSON into a temporary map to avoid partially updating cache
-                Map<String, String> tmp = mapper.readValue(path.toFile(), Map.class);
-                if (!tmp.equals(cache)){
-                    cache.clear();
-                    cache.putAll(tmp);
-                    System.out.println("Reloaded mappings: " + cache.size() + " entries");
-                }
+            Map<String, String> tmp = mapper.readValue(
+                    path.toFile(),
+                    new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {}
+            );
+            Map<String, String> next = java.util.Collections.unmodifiableMap(tmp);
+            // Swap reference in one step (atomic + visible because volatile)
+            if (!next.equals(cache)) {
+                cache = next;
+                System.out.println("Reloaded mappings: " + cache.size() + " entries");
+            }
         } catch (IOException e) {
             System.err.println("Failed to reload mappings: " + e.getMessage());
         }

@@ -28,9 +28,19 @@ public class ShortenController {
             return ResponseEntity.badRequest().body("Missing 'url'");
         }
 
-        String code = codeGen.generateCode();
-        store.put(code, longUrl);
-        return ResponseEntity.ok(code);
+        // IMPORTANT: atomic check+put to avoid races (two requests same time)
+        synchronized (store) {
+            String code = codeGen.generateCodeForUrl(longUrl);
+
+            String existing = store.get(code);
+            if (existing == null) {
+                store.put(code, longUrl);
+            } else if (!existing.equals(longUrl)) {
+                // Should be rare due to collision handling, but safe guard
+                return ResponseEntity.status(409).body("Collision detected; retry");
+            }
+            return ResponseEntity.ok(code);
+        }
     }
 
 }
