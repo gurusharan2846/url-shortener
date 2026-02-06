@@ -9,49 +9,52 @@ services:
       - "9042:9042"
     environment:
       CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
-      CASSANDRA_SEEDS: "cassandra-1,cassandra-2"
+      CASSANDRA_SEEDS: "cassandra-1"
       CASSANDRA_DC: dc1
       CASSANDRA_RACK: rack1
       CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+      CASSANDRA_RPC_ADDRESS: "0.0.0.0"
+#      CASSANDRA_BROADCAST_ADDRESS: "127.0.0.1"
+      CASSANDRA_BROADCAST_RPC_ADDRESS: "127.0.0.1"
     volumes:
       - cassandra1-data:/var/lib/cassandra
-    networks:
-      - cassandra-net
+#    networks:
+#      - cassandra-net
 
-  cassandra-2:
-    image: cassandra:4.1
-    container_name: cassandra-2
-    hostname: cassandra-2
-    environment:
-      CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
-      CASSANDRA_SEEDS: "cassandra-1,cassandra-2"
-      CASSANDRA_DC: dc1
-      CASSANDRA_RACK: rack1
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-    volumes:
-      - cassandra2-data:/var/lib/cassandra
-    networks:
-      - cassandra-net
+#  cassandra-2:
+#    image: cassandra:4.1
+#    container_name: cassandra-2
+#    hostname: cassandra-2
+#    environment:
+#      CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
+#      CASSANDRA_SEEDS: "cassandra-1,cassandra-2"
+#      CASSANDRA_DC: dc1
+#      CASSANDRA_RACK: rack1
+#      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+#    volumes:
+#      - cassandra2-data:/var/lib/cassandra
+#    networks:
+#      - cassandra-net
 
-  cassandra-3:
-    image: cassandra:4.1
-    container_name: cassandra-3
-    hostname: cassandra-3
-    environment:
-      CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
-      CASSANDRA_SEEDS: "cassandra-1,cassandra-2"
-      CASSANDRA_DC: dc1
-      CASSANDRA_RACK: rack1
-      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
-    volumes:
-      - cassandra3-data:/var/lib/cassandra
-    networks:
-      - cassandra-net
+#  cassandra-3:
+#    image: cassandra:4.1
+#    container_name: cassandra-3
+#    hostname: cassandra-3
+#    environment:
+#      CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
+#      CASSANDRA_SEEDS: "cassandra-1,cassandra-2"
+#      CASSANDRA_DC: dc1
+#      CASSANDRA_RACK: rack1
+#      CASSANDRA_ENDPOINT_SNITCH: GossipingPropertyFileSnitch
+#    volumes:
+#      - cassandra3-data:/var/lib/cassandra
+#    networks:
+#      - cassandra-net
 
 volumes:
   cassandra1-data:
-  cassandra2-data:
-  cassandra3-data:
+#  cassandra2-data:
+#  cassandra3-data:
 
 networks:
   cassandra-net:
