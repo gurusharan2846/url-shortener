@@ -1,6 +1,6 @@
 package com.example.urlshortener.controller;
 
-import com.example.urlshortener.store.impl.FileUrlStore;
+import com.example.urlshortener.store.UrlStore;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,9 +11,9 @@ import java.net.URI;
 @RestController
 public class RedirectController {
 
-    private final FileUrlStore store;
+    private final UrlStore store;
 
-    public RedirectController(FileUrlStore store) {
+    public RedirectController(UrlStore store) {
         this.store = store;
     }
 

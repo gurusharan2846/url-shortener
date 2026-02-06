@@ -1,0 +1,29 @@
+package com.example.urlshortener.store.impl;
+
+import com.datastax.oss.driver.api.core.CqlSession;
+import com.datastax.oss.driver.api.core.cql.PreparedStatement;
+import com.datastax.oss.driver.api.core.cql.Row;
+import com.example.urlshortener.store.UrlStore;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CassandraUrlStore implements UrlStore {
+
+    private final CqlSession session;
+    private final PreparedStatement selectByCode;
+    private final PreparedStatement insertIfNotExists;
+
+    public CassandraUrlStore(CqlSession session) {
+        this.session = session;
+        this.selectByCode = session.prepare("SELECT long_url FROM urls WHERE short_code = ?");
+        this.insertIfNotExists = session.prepare(
+                "INSERT INTO urls (short_code, long_url, created_at) VALUES (?, ?, ?) IF NOT EXISTS"
+        );
+    }
+
+    @Override
+    public String get(String code) {
+        Row row = session.execute(selectByCode.bind(code)).one();
+        return row == null ? null : row.getString("long_url");
+    }
+}
