@@ -5,3 +5,8 @@ cassandra:
   port: 9042
   datacenter: "dc1"
   keyspace: "urlshortener"
+  writeConsistency: LOCAL_ONE
+  readConsistency: LOCAL_ONE
+logging:
+  level:
+    com.datastax.oss.driver.internal.core.cql: DEBUG
