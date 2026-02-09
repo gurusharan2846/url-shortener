@@ -5,3 +5,18 @@ cassandra:
   port: 9042
   datacenter: "dc1"
   keyspace: "urlshortener"
+spring:
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+app:
+  cache:
+    ttlSeconds: 3600
+    ttlJitterSeconds: 300   # up to +5 minutes random jitter
+    prefix: "url:"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
