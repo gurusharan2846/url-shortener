@@ -1,6 +1,8 @@
 package com.example.urlshortener.controller;
 
+import com.example.urlshortener.service.CachedRedirectLookup;
 import com.example.urlshortener.store.UrlStore;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,21 +13,42 @@ import java.net.URI;
 @RestController
 public class RedirectController {
 
-    private final UrlStore store;
+    private final CachedRedirectLookup lookup;
 
-    public RedirectController(UrlStore store) {
-        this.store = store;
+    public RedirectController(CachedRedirectLookup lookup) {
+        this.lookup = lookup;
     }
 
     @GetMapping("/{code}")
     public ResponseEntity<Void> redirect(@PathVariable String code) {
-        String longUrl = store.get(code);
-        if (longUrl == null) {
-            return ResponseEntity.notFound().build();
-        }
+        String longUrl = lookup.resolveLongUrl(code);
+        if (longUrl == null) return ResponseEntity.notFound().build();
 
-        return ResponseEntity.status(302)
+        return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(longUrl))
                 .build();
     }
 }
+
+//@RestController
+//public class RedirectController {
+//
+//    private final UrlStore store;
+//
+//    public RedirectController(UrlStore store) {
+//        this.store = store;
+//    }
+//
+//    @GetMapping("/{code}")
+//    public ResponseEntity<Void> redirect(@PathVariable String code) {
+//        String longUrl = store.get(code);
+//        if (longUrl == null) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        return ResponseEntity.status(302)
+//                .location(URI.create(longUrl))
+//                .build();
+//    }
+//
+//}
