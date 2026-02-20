@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: analytics-consumer
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    consumer:
+      group-id: redirect-analytics
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      max-poll-records: 500
+    listener:
+      ack-mode: manual
+  cassandra:
+    keyspace-name: urlshortener
+    contact-points: "127.0.0.1"
+    port: 9042
+    local-datacenter: dc1
+app:
+  kafka:
+    topic: redirect-events

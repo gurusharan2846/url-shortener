@@ -10,11 +10,22 @@ spring:
     redis:
       host: 127.0.0.1
       port: 6379
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: 1
+      properties:
+        linger.ms: 5
+        batch.size: 16384
 app:
   cache:
     ttlSeconds: 3600
     ttlJitterSeconds: 300   # up to +5 minutes random jitter
     prefix: "url:"
+  analytics:
+    topic: redirect-events
 management:
   endpoints:
     web:

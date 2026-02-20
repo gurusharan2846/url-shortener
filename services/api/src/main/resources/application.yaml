@@ -10,3 +10,12 @@ cassandra:
 logging:
   level:
     com.datastax.oss.driver.internal.core.cql: DEBUG
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
