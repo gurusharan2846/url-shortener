@@ -1,15 +1,17 @@
 server:
   port: 8080
 cassandra:
-  contactPoints: "127.0.0.1"
-  port: 9042
-  datacenter: "dc1"
-  keyspace: "urlshortener"
+  contactPoints: ${CASSANDRA_CONTACTPOINTS:127.0.0.1}
+  port: ${CASSANDRA_PORT:9042}
+  datacenter: ${CASSANDRA_DATACENTER:dc1}
+  keyspace: ${CASSANDRA_KEYSPACE:urlshortener}
   writeConsistency: LOCAL_ONE
   readConsistency: LOCAL_ONE
+
 logging:
   level:
     com.datastax.oss.driver.internal.core.cql: DEBUG
+
 management:
   endpoints:
     web:
