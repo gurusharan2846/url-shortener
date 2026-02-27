@@ -1,0 +1,181 @@
+name: urlshort-local
+
+networks:
+  urlshort-net:
+    driver: bridge
+
+volumes:
+  cassandra1-data:
+  kafka_data:
+
+services:
+  cassandra-1:
+    image: cassandra:4.1
+    container_name: cassandra-1
+    hostname: cassandra-1
+    networks: [urlshort-net]
+    ports:
+      - "9042:9042"
+    environment:
+      CASSANDRA_CLUSTER_NAME: "url-shortener-cluster"
+      CASSANDRA_SEEDS: "cassandra-1"
+      CASSANDRA_DC: "dc1"
+      CASSANDRA_RACK: "rack1"
+      CASSANDRA_ENDPOINT_SNITCH: "GossipingPropertyFileSnitch"
+      CASSANDRA_RPC_ADDRESS: "0.0.0.0"
+      MAX_HEAP_SIZE: "512M"
+      HEAP_NEWSIZE: "128M"
+    volumes:
+      - cassandra1-data:/var/lib/cassandra
+    healthcheck:
+      test: ["CMD-SHELL", "cqlsh -e 'DESCRIBE KEYSPACES' 127.0.0.1 9042 >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    networks: [urlshort-net]
+    ports:
+      - "6379:6379" # for local machine access (optional)
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+
+  kafka:
+    image: apache/kafka:4.1.1
+    container_name: kafka
+    networks: [urlshort-net]
+    ports:
+      - "9092:9092"   # host access (EXTERNAL)
+    environment:
+      # ---- KRaft single node (broker+controller) ----
+      KAFKA_NODE_ID: "1"
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
+      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:9093"
+
+      # ---- listeners: internal (containers) + external (host) + controller ----
+      KAFKA_LISTENERS: "INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093"
+      KAFKA_ADVERTISED_LISTENERS: "INTERNAL://kafka:29092,EXTERNAL://localhost:9092"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: "CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT"
+      KAFKA_INTER_BROKER_LISTENER_NAME: "INTERNAL"
+
+      # ---- single-node sanity ----
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: "1"
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: "1"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: "0"
+
+      # ---- optional dev convenience ----
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+    volumes:
+      # Apache Kafka image stores data under /var/lib/kafka/data
+      - kafka_data:/var/lib/kafka/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server 127.0.0.1:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+
+  api:
+    build:
+      context: ./services/api
+    image: urlshort/api:local
+    container_name: api
+    networks: [urlshort-net]
+    depends_on:
+      cassandra-1:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+      CASSANDRA_CONTACTPOINTS: "cassandra-1"
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_DATACENTER: "dc1"
+      CASSANDRA_KEYSPACE: "urlshortener"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/actuator/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+
+  redirect:
+    build:
+      context: ./services/redirect
+    image: urlshort/redirect:local
+    container_name: redirect
+    networks: [urlshort-net]
+    depends_on:
+      cassandra-1:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+      CASSANDRA_CONTACTPOINTS: "cassandra-1"
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_DATACENTER: "dc1"
+      CASSANDRA_KEYSPACE: "urlshortener"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/actuator/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+
+  analytics:
+    build:
+      context: ./services/analytics
+    image: urlshort/analytics:local
+    container_name: analytics
+    networks: [urlshort-net]
+    depends_on:
+      cassandra-1:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8082:8082" # management only
+    environment:
+      SPRING_PROFILES_ACTIVE: "prod"
+      KAFKA_BOOTSTRAP_SERVERS: "kafka:29092"
+      SERVER_PORT: "8082"
+      CASSANDRA_CONTACTPOINTS: "cassandra-1"
+      CASSANDRA_PORT: "9042"
+      CASSANDRA_DATACENTER: "dc1"
+      CASSANDRA_KEYSPACE: "urlshortener"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8082/actuator/health >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 40
+
+  # Optional: run on-demand to validate shorten -> redirect -> (analytics writes to cassandra)
+  # Run: docker compose -f docker-compose.yml run --rm e2e
+  e2e:
+    image: curlimages/curl:8.6.0
+    networks: [ urlshort-net ]
+    depends_on:
+      api:
+        condition: service_healthy
+      redirect:
+        condition: service_healthy
+      analytics:
+        condition: service_healthy
+    volumes:
+      - ./scripts/e2e.sh:/e2e.sh:ro
+    entrypoint: [ "/bin/sh", "/e2e.sh" ]

@@ -1,17 +1,17 @@
 server:
   port: 8081
 cassandra:
-  contactPoints: "127.0.0.1"
-  port: 9042
-  datacenter: "dc1"
-  keyspace: "urlshortener"
+  contactPoints: ${CASSANDRA_CONTACTPOINTS:127.0.0.1}
+  port: ${CASSANDRA_PORT:9042}
+  datacenter: ${CASSANDRA_DATACENTER:dc1}
+  keyspace: ${CASSANDRA_KEYSPACE:urlshortener}
 spring:
   data:
     redis:
-      host: 127.0.0.1
-      port: 6379
+      host: ${REDIS_HOST:127.0.0.1}
+      port: ${REDIS_PORT:6379}
   kafka:
-    bootstrap-servers: 127.0.0.1:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
@@ -26,8 +26,13 @@ app:
     prefix: "url:"
   analytics:
     topic: redirect-events
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true

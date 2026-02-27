@@ -1,8 +1,10 @@
+server:
+  port: 0
 spring:
   application:
     name: analytics-consumer
   kafka:
-    bootstrap-servers: 127.0.0.1:9092
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: redirect-analytics
       auto-offset-reset: earliest
@@ -13,10 +15,23 @@ spring:
     listener:
       ack-mode: manual
   cassandra:
-    keyspace-name: urlshortener
-    contact-points: "127.0.0.1"
-    port: 9042
-    local-datacenter: dc1
+    keyspace-name: ${CASSANDRA_KEYSPACE:urlshortener}
+    contact-points: ${CASSANDRA_CONTACTPOINTS:127.0.0.1}
+    port: ${CASSANDRA_PORT:9042}
+    local-datacenter: ${CASSANDRA_DATACENTER:dc1}
+
 app:
   kafka:
     topic: redirect-events
+
+management:
+  server:
+    port: 8082
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
