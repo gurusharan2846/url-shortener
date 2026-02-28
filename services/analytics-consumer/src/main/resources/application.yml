@@ -30,8 +30,11 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,prometheus
   endpoint:
     health:
       probes:
         enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}

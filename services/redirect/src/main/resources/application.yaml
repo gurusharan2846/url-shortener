@@ -6,6 +6,8 @@ cassandra:
   datacenter: ${CASSANDRA_DATACENTER:dc1}
   keyspace: ${CASSANDRA_KEYSPACE:urlshortener}
 spring:
+  application:
+    name: redirect
   data:
     redis:
       host: ${REDIS_HOST:127.0.0.1}
@@ -36,3 +38,6 @@ management:
     health:
       probes:
         enabled: true
+  metrics:
+    tags:
+      service: ${spring.application.name}
