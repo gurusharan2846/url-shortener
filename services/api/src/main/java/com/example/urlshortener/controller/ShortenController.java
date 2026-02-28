@@ -2,6 +2,8 @@ package com.example.urlshortener.controller;
 
 import com.example.urlshortener.service.CodeGenerator;
 import com.example.urlshortener.store.UrlStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +16,8 @@ public class ShortenController {
     private final UrlStore store;
     private final CodeGenerator codeGen;
 
+    private static final Logger log = LoggerFactory.getLogger(ShortenController.class);
+
     public ShortenController(UrlStore store, CodeGenerator codeGen) {
         this.store = store;
         this.codeGen = codeGen;
@@ -21,6 +25,7 @@ public class ShortenController {
 
     @PostMapping("/shorten")
     public ResponseEntity<String> shortenUrl(@RequestBody Map<String, String> request) {
+        log.info("shorten called");
         String longUrl = request.get("url");
         if (longUrl == null || longUrl.isEmpty()) {
             return ResponseEntity.badRequest().body("Missing 'url'");

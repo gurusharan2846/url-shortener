@@ -139,7 +139,7 @@ services:
 
   analytics:
     build:
-      context: ./services/analytics
+      context: ./services/analytics-consumer
     image: urlshort/analytics:local
     container_name: analytics
     networks: [urlshort-net]
@@ -179,3 +179,14 @@ services:
     volumes:
       - ./scripts/e2e.sh:/e2e.sh:ro
     entrypoint: [ "/bin/sh", "/e2e.sh" ]
+
+  prometheus:
+    image: prom/prometheus:v2.53.1
+    container_name: prometheus
+    networks: [ urlshort-net ]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
