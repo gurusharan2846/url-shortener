@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redirect
+  namespace: urlshort
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redirect
+  template:
+    metadata:
+      labels:
+        app: redirect
+    spec:
+      containers:
+        - name: redirect
+          image: urlshort/redirect:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+          envFrom:
+            - configMapRef:
+                name: urlshort-config
+            - secretRef:
+                name: urlshort-secrets
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 2
+            failureThreshold: 12
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            timeoutSeconds: 2
+            failureThreshold: 6
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redirect
+  namespace: urlshort
+spec:
+  selector:
+    app: redirect
+  ports:
+    - name: http
+      port: 8081
+      targetPort: http
+  type: ClusterIP
