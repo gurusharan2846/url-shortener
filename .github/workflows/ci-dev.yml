@@ -1,0 +1,94 @@
+name: CI - Dev
+
+on:
+  push:
+    branches: [feature/api-service]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
+jobs:
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - api
+          - redirect
+          - analytics-consumer
+
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Run tests
+        run: ./mvnw test
+
+      # optional "lint" for Maven/Spring projects
+      - name: Package verify
+        run: ./mvnw -B verify -DskipTests
+
+  build-and-push:
+    name: Build and push images
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            image_name: urlshort-api
+            context: ./services/api
+          - service: redirect
+            image_name: urlshort-redirect
+            context: ./services/redirect
+          - service: analytics-consumer
+            image_name: urlshort-analytics
+            context: ./services/analytics-consumer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute tag
+        id: meta
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          BRANCH="${GITHUB_REF_NAME//\//-}"
+          echo "tag=${BRANCH}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+          echo "image=${REGISTRY,,}/${OWNER,,}/${{ matrix.image_name }}:${BRANCH}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.image }}
