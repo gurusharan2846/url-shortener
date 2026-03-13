@@ -83,6 +83,9 @@ jobs:
           echo "tag=${BRANCH}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
           echo "image=${REGISTRY,,}/${OWNER,,}/${{ matrix.image_name }}:${BRANCH}-${SHORT_SHA}" >> "$GITHUB_OUTPUT"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
