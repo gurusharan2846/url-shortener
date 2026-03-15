@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: redirect
-          image: urlshort/redirect:local
+          image: ghcr.io/gurusharan2846/urlshort-redirect:feature-api-service-1b14616
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
