@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/gurusharan2846/urlshort-api:feature-api-service-6726f7e
+          image: ghcr.io/gurusharan2846/urlshort-api:feature-api-service-1b14616
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
