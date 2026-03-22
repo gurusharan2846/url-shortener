@@ -1,0 +1,16 @@
+{{- if .Values.canary.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-canary
+  namespace: {{ include "api.namespace" . }}
+spec:
+  selector:
+    app: api
+    track: canary
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+  type: ClusterIP
+  {{- end }}
