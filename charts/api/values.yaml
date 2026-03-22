@@ -1,0 +1,42 @@
+namespace: urlshort
+
+image:
+  repository: ghcr.io/gurusharan2846/urlshort-api
+  stableTag: feature-api-service-1b14616
+  canaryTag: ""
+  pullPolicy: Always
+
+replicaCount:
+  stable: 1
+  canary: 1
+
+service:
+  port: 8080
+  targetPort: 8080
+
+ingress:
+  enabled: true
+  className: nginx
+  host: api.urlshort.local
+
+canary:
+  enabled: false
+  weight: 10
+
+config:
+  useExistingConfigMap: urlshort-config
+  useExistingSecret: urlshort-secrets
+
+probes:
+  readiness:
+    path: /actuator/health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 12
+  liveness:
+    path: /actuator/health
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
