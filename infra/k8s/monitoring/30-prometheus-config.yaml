@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: urlshort
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+
+    scrape_configs:
+      - job_name: "api-stable"
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["api-stable:8080"]
+
+      - job_name: "redirect"
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["redirect:8081"]
+
+      - job_name: "analytics"
+        metrics_path: /actuator/prometheus
+        static_configs:
+          - targets: ["analytics:8082"]
