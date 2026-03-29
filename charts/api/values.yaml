@@ -40,3 +40,28 @@ probes:
     periodSeconds: 10
     timeoutSeconds: 2
     failureThreshold: 6
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 65
+
+hpaBehavior:
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    percent: 100
+    periodSeconds: 15
+  scaleDown:
+    stabilizationWindowSeconds: 60
+    percent: 50
+    periodSeconds: 30
+
