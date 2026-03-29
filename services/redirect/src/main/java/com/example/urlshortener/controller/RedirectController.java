@@ -5,6 +5,8 @@ import com.example.urlshortener.analytics.RedirectEvent;
 import com.example.urlshortener.service.CachedRedirectLookup;
 import com.example.urlshortener.store.UrlStore;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,8 @@ public class RedirectController {
     private final CachedRedirectLookup lookup;
     private final RedirectAnalyticsProducer analyticsProducer;
 
+    private static final Logger log = LoggerFactory.getLogger(RedirectController.class);
+
     public RedirectController(CachedRedirectLookup lookup, RedirectAnalyticsProducer analyticsProducer) {
         this.lookup = lookup;
         this.analyticsProducer = analyticsProducer;
@@ -29,12 +33,17 @@ public class RedirectController {
         String longUrl = lookup.resolveLongUrl(code);
         if (longUrl == null) return ResponseEntity.notFound().build();
 
-        analyticsProducer.publish(new RedirectEvent(
-                code,
-                System.currentTimeMillis(),
-                request.getHeader("User-Agent"),
-                clientIp(request)
-        ));
+        try {
+            analyticsProducer.publish(new RedirectEvent(
+                    code,
+                    System.currentTimeMillis(),
+                    request.getHeader("User-Agent"),
+                    clientIp(request)
+            ));
+        } catch(Exception e){
+            log.warn("Failed to publish redirect analytics for code={}", code, e);
+        }
+
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(longUrl))
