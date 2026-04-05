@@ -1,7 +1,7 @@
 namespace: urlshort
 image:
   repository: ghcr.io/gurusharan2846/urlshort-redirect
-  tag: feature-api-service-1b14616
+  tag: feature-api-service-cbae069
   pullPolicy: IfNotPresent
 
 replicaCount: 1
@@ -49,6 +49,12 @@ autoscaling:
   minReplicas: 1
   maxReplicas: 5
   targetCPUUtilizationPercentage: 55
+
+customMetrics:
+  enabled: false
+  requestsPerSecond:
+    metricName: http_requests_per_second
+    averageValue: "20"
 
 hpaBehavior:
   scaleUp:
