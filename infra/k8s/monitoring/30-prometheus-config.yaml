@@ -6,20 +6,74 @@ metadata:
 data:
   prometheus.yml: |
     global:
-      scrape_interval: 5s
+        scrape_interval: 5s
 
     scrape_configs:
       - job_name: "api-stable"
         metrics_path: /actuator/prometheus
-        static_configs:
-          - targets: ["api-stable:8080"]
-
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - urlshort
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: api
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_label_track]
+            regex: stable
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: "8080"
+            action: keep
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:8080
+  
       - job_name: "redirect"
         metrics_path: /actuator/prometheus
-        static_configs:
-          - targets: ["redirect:8081"]
-
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - urlshort
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: redirect
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: "8081"
+            action: keep
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:8081
+  
       - job_name: "analytics"
         metrics_path: /actuator/prometheus
-        static_configs:
-          - targets: ["analytics:8082"]
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - urlshort
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            regex: analytics
+            action: keep
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            regex: "8082"
+            action: keep
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: ${1}:8082

@@ -31,4 +31,13 @@ spec:
         target:
           type: Utilization
           averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+    {{- if .Values.customMetrics.enabled }}
+    - type: Pods
+      pods:
+        metric:
+          name: {{ .Values.customMetrics.requestsPerSecond.metricName }}
+        target:
+          type: AverageValue
+          averageValue: {{ .Values.customMetrics.requestsPerSecond.averageValue | quote }}
+    {{- end }}
 {{- end }}
