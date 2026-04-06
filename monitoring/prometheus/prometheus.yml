@@ -1,18 +1,18 @@
-global:
-  scrape_interval: 5s
-
-scrape_configs:
-  - job_name: "api"
-    metrics_path: /actuator/prometheus
-    static_configs:
-      - targets: ["api:8080"]
-
-  - job_name: "redirect"
-    metrics_path: /actuator/prometheus
-    static_configs:
-      - targets: ["redirect:8081"]
-
-  - job_name: "analytics"
-    metrics_path: /actuator/prometheus
-    static_configs:
-      - targets: ["analytics:8082"]
+#global:
+#  scrape_interval: 5s
+#
+#scrape_configs:
+#  - job_name: "api"
+#    metrics_path: /actuator/prometheus
+#    static_configs:
+#      - targets: ["api:8080"]
+#
+#  - job_name: "redirect"
+#    metrics_path: /actuator/prometheus
+#    static_configs:
+#      - targets: ["redirect:8081"]
+#
+#  - job_name: "analytics"
+#    metrics_path: /actuator/prometheus
+#    static_configs:
+#      - targets: ["analytics:8082"]

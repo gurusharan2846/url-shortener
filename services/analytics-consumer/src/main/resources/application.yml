@@ -38,3 +38,8 @@ management:
   metrics:
     tags:
       service: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 50ms,100ms,200ms,300ms,500ms,1s,2s
