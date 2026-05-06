@@ -2,7 +2,7 @@ namespace: urlshort
 
 image:
   repository: ghcr.io/gurusharan2846/urlshort-api
-  stableTag: feature-api-service-1b14616
+  stableTag: feature-api-service-3a2ad26
   canaryTag: ""
   pullPolicy: Always
 

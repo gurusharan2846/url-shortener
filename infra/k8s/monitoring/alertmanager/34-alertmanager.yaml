@@ -1,34 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prometheus
+  name: alertmanager
   namespace: urlshort
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: prometheus
+      app: alertmanager
   template:
     metadata:
       labels:
-        app: prometheus
+        app: alertmanager
     spec:
-      serviceAccountName: prometheus
       containers:
-        - name: prometheus
-          image: prom/prometheus:v2.53.1
+        - name: alertmanager
+          image: prom/alertmanager:v0.28.1
           args:
-            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
           ports:
-            - containerPort: 9090
+            - containerPort: 9093
               name: http
           volumeMounts:
-            - name: prometheus-config
-              mountPath: /etc/prometheus/prometheus.yml
-              subPath: prometheus.yml
-            - name: prometheus-alerts
-              mountPath: /etc/prometheus/alerts
-              readOnly: true
+            - name: alertmanager-config
+              mountPath: /etc/alertmanager/alertmanager.yml
+              subPath: alertmanager.yml
           readinessProbe:
             httpGet:
               path: /-/ready
@@ -42,23 +38,20 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 10
       volumes:
-        - name: prometheus-config
+        - name: alertmanager-config
           configMap:
-            name: prometheus-config
-        - name: prometheus-alerts
-          configMap:
-            name: prometheus-alerts
+            name: alertmanager-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: prometheus
+  name: alertmanager
   namespace: urlshort
 spec:
   selector:
-    app: prometheus
+    app: alertmanager
   ports:
     - name: http
-      port: 9090
+      port: 9093
       targetPort: http
   type: ClusterIP

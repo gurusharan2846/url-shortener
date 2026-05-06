@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: urlshort
+data:
+  dashboards.yml: |
+    apiVersion: 1
+    providers:
+      - name: 'urlshort-dashboards'
+        orgId: 1
+        folder: 'URL Shortener'
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards

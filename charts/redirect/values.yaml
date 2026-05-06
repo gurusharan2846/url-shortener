@@ -1,7 +1,7 @@
 namespace: urlshort
 image:
   repository: ghcr.io/gurusharan2846/urlshort-redirect
-  tag: feature-api-service-cbae069
+  tag: feature-api-service-54eca9f
   pullPolicy: IfNotPresent
 
 replicaCount: 1
